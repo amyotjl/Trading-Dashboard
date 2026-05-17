@@ -1,0 +1,28 @@
+# Rails
+backend/.bundle/
+backend/log/
+backend/tmp/
+backend/public/uploads/
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/storage/
+backend/node_modules/
+
+# Vue / Node
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Data (CSVs are large; opt-in to track specific ones)
+data/*.csv
+!data/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
