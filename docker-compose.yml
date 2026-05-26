@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: sedi_development
     ports:
-      - "5432:5432"
+      - "5500:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -15,12 +15,24 @@ services:
       timeout: 5s
       retries: 5
 
+  enrichment:
+    build: ./enrichment
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build: ./backend
     ports:
-      - "3000:3000"
+      - "3500:3500"
     depends_on:
       db:
+        condition: service_healthy
+      enrichment:
         condition: service_healthy
     environment:
       RAILS_ENV: development
@@ -29,12 +41,13 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       CORS_ORIGINS: http://localhost:5173
-    volumes:
-      - ./backend:/app
-      - backend_bundle:/usr/local/bundle
+      ENRICHMENT_SERVICE_URL: http://enrichment:8000
     command: >
-      bash -c "bundle exec rails db:create db:migrate &&
-               bundle exec rails server -b 0.0.0.0 -p 3000"
+      bash -c "rm -f tmp/pids/server.pid &&
+               bundle exec rails db:migrate &&
+               bundle exec rails server -b 0.0.0.0 -p 3500"
+    # First-time setup: docker compose run --rm backend bundle exec rails db:seed
+    # Or use: make setup
 
   frontend:
     build: ./frontend
@@ -43,12 +56,7 @@ services:
     depends_on:
       - backend
     environment:
-      VITE_API_BASE_URL: http://backend:3000
-    volumes:
-      - ./frontend:/app
-      - frontend_node_modules:/app/node_modules
+      VITE_API_BASE_URL: http://backend:3500
 
 volumes:
   postgres_data:
-  backend_bundle:
-  frontend_node_modules:

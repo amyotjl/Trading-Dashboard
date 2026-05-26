@@ -15,19 +15,27 @@ class TransactionImportService
     errors   = []
     row_num  = 1
 
-    ActiveRecord::Base.transaction do
-      CSV.foreach(@source, headers: true) do |row|
-        row_num += 1
+    Rails.logger.info "[Import:Transactions] Starting import from #{@source}"
+
+    CSV.foreach(@source, headers: true) do |row|
+      row_num += 1
+      ::ActiveRecord::Base.transaction do
         result = import_row(row)
         case result
-        when :inserted then inserted += 1
-        when :skipped  then skipped  += 1
+        when :inserted
+          inserted += 1
+          Rails.logger.debug "[Import:Transactions] Row #{row_num}: inserted sedi_id=#{row['transaction_id']}"
+        when :skipped
+          skipped += 1
+          Rails.logger.debug "[Import:Transactions] Row #{row_num}: skipped (duplicate) sedi_id=#{row['transaction_id']}"
         end
-      rescue => e
-        errors << { row: row_num, message: e.message }
       end
+    rescue => e
+      errors << { row: row_num, message: e.message }
+      Rails.logger.error "[Import:Transactions] Row #{row_num} error: #{e.message}\n#{e.backtrace.first(10).join("\n")}"
     end
 
+    Rails.logger.info "[Import:Transactions] Done — inserted: #{inserted}, skipped: #{skipped}, errors: #{errors.size}"
     Result.new(inserted: inserted, skipped: skipped, errors: errors)
   end
 
@@ -67,7 +75,7 @@ class TransactionImportService
     else
       txn = Transaction.create!(attrs)
       relationship_records.each do |rel|
-        TransactionRelationship.find_or_create_by!(transaction: txn, relationship: rel)
+        TransactionRelationship.find_or_create_by!(transaction_id: txn.id, relationship_id: rel.id)
       end
       :inserted
     end
@@ -98,6 +106,10 @@ class TransactionImportService
       entity = raw.sub("Indirect Ownership", "").strip
       entity = nil if entity.blank?
       OwnershipType.find_or_create_by!(category: "Indirect", entity_name: entity)
+    elsif raw.start_with?("Control or Direction")
+      entity = raw.sub("Control or Direction", "").strip
+      entity = nil if entity.blank?
+      OwnershipType.find_or_create_by!(category: "Control", entity_name: entity)
     else
       OwnershipType.find_or_create_by!(category: "Direct", entity_name: nil)
     end

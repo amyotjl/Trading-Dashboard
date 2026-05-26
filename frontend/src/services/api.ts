@@ -36,6 +36,20 @@ export interface Issuer {
   name: string
   sector: string | null
   home_page: string | null
+  description: string | null
+}
+
+export interface OHLCVBar {
+  time: string
+  open: number
+  high: number
+  low: number
+  close: number
+}
+
+export interface TradeEvent {
+  date: string
+  type: 'buy' | 'sell'
 }
 
 export interface TransactionFilters {
@@ -46,13 +60,57 @@ export interface TransactionFilters {
   ticker?: string
   insider_name?: string
   nature_of_transaction_id?: number
+  min_insiders?: number
+  insider_date_from?: string
+  insider_date_to?: string
   sort?: string
   direction?: 'asc' | 'desc'
 }
 
+// ── Market types ──────────────────────────────────────────────────────────────
+
+export interface MarketIndex {
+  symbol: string
+  name: string
+  last: number
+  prev: number
+  change_pct: number
+  spark: number[]
+}
+
+export interface MarketSector {
+  name: string
+  weight: number
+  day: number
+  week: number
+  month: number
+  ytd: number
+}
+
+export interface MarketMover {
+  ticker: string
+  name: string
+  last: number
+  chg: number
+  vol?: number
+}
+
+export interface SentimentRow {
+  date: string
+  buys: number
+  sells: number
+  buy_value: number
+  sell_value: number
+}
+
+// ── API clients ───────────────────────────────────────────────────────────────
+
 export const transactionsApi = {
   list: (params: TransactionFilters = {}) =>
     api.get<PaginatedResponse<TransactionRow>>('/transactions', { params }),
+
+  sentiment: (params?: { date_from?: string; date_to?: string }) =>
+    api.get<SentimentRow[]>('/insider_sentiment', { params }),
 }
 
 export const issuersApi = {
@@ -63,6 +121,19 @@ export const issuersApi = {
     api.get<PaginatedResponse<TransactionRow> & { issuer: Issuer }>(
       `/issuers/${ticker}/transactions`, { params }
     ),
+
+  ohlcv: (ticker: string) =>
+    api.get<{ ticker: string; data: OHLCVBar[] }>(`/issuers/${ticker}/ohlcv`),
+
+  tradeEvents: (ticker: string) =>
+    api.get<TradeEvent[]>(`/issuers/${ticker}/trade_events`),
+}
+
+export const marketApi = {
+  indices: () => api.get<MarketIndex[]>('/market/indices'),
+  sectors: () => api.get<MarketSector[]>('/market/sectors'),
+  movers: (type: 'gainers' | 'losers' | 'active') =>
+    api.get<MarketMover[]>('/market/movers', { params: { type } }),
 }
 
 export const importsApi = {

@@ -27,6 +27,15 @@ class Transaction < ApplicationRecord
     scope = scope.joins(:issuer).where(issuers: { ticker: params[:ticker] }) if params[:ticker].present?
     scope = scope.joins(:insider).where("insiders.name ILIKE ?", "%#{params[:insider_name]}%") if params[:insider_name].present?
     scope = scope.where(nature_of_transaction_id: params[:nature_of_transaction_id]) if params[:nature_of_transaction_id].present?
+
+    if params[:min_insiders].present? && params[:min_insiders].to_i > 0
+      insider_scope = Transaction.select(:issuer_id).group(:issuer_id)
+                                 .having("COUNT(DISTINCT insider_id) >= ?", params[:min_insiders].to_i)
+      insider_scope = insider_scope.where("transaction_date >= ?", params[:insider_date_from]) if params[:insider_date_from].present?
+      insider_scope = insider_scope.where("transaction_date <= ?", params[:insider_date_to])   if params[:insider_date_to].present?
+      scope = scope.where(issuer_id: insider_scope)
+    end
+
     scope
   }
 

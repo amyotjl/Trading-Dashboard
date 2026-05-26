@@ -1,0 +1,22 @@
+{
+  "sessions": {
+    "term-1779801541219-6qfqpv": {
+      "id": "term-1779801541219-6qfqpv",
+      "name": "http-listener",
+      "status": "active",
+      "createdAt": "2026-05-26T13:19:01.219Z",
+      "lastActivity": "2026-05-26T13:19:39.002Z",
+      "workingDir": "A:\\HelloWorld\\data",
+      "history": [
+        {
+          "command": "powershell -NoProfile -Command \"$listener = New-Object System.Net.HttpListener; $listener.Prefixes.Add('http://localhost:18765/'); $listener.Start(); Write-Host 'LISTENING'; $ctx = $listener.GetContext(); $body = New-Object System.IO.StreamReader($ctx.Request.InputStream); $csv = $body.ReadToEnd(); $csv | Out-File -FilePath 'A:\\HelloWorld\\data\\sedi_insider_transactions_2026-05-25.csv' -Encoding UTF8 -NoNewline; $ctx.Response.StatusCode = 200; $ctx.Response.Close(); $listener.Stop(); Write-Host 'DONE:' ($csv.Split([char]10).Count - 1)\"",
+          "output": "LISTENING\n",
+          "timestamp": "2026-05-26T13:19:39.002Z",
+          "exitCode": 1
+        }
+      ],
+      "env": {}
+    }
+  },
+  "version": "3.0.0"
+}

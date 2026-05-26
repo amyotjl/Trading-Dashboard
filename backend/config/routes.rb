@@ -5,10 +5,20 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :transactions, only: [:index]
 
-      resources :issuers, param: :ticker, only: [:show] do
+      resources :issuers, param: :ticker, constraints: { ticker: /[^\/]+/ }, only: [:show] do
         member do
           get :transactions
+          get :trade_events
+          get :ohlcv
         end
+      end
+
+      get '/insider_sentiment', to: 'transactions#insider_sentiment'
+
+      namespace :market do
+        get :indices
+        get :sectors
+        get :movers
       end
 
       resources :nature_of_transactions, only: [:index]

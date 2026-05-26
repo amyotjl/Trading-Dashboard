@@ -7,19 +7,24 @@ const router = createRouter({
     {
       path: '/',
       name: 'dashboard',
-      component: DashboardView
+      component: DashboardView,
+    },
+    {
+      path: '/market',
+      name: 'market',
+      component: () => import('../views/MarketView.vue'),
     },
     {
       path: '/ticker/:symbol',
       name: 'ticker',
-      component: () => import('../views/TickerView.vue')
+      component: () => import('../views/TickerView.vue'),
     },
     {
       path: '/import',
       name: 'import',
-      component: () => import('../views/UploadView.vue')
-    }
-  ]
+      component: () => import('../views/UploadView.vue'),
+    },
+  ],
 })
 
 export default router

@@ -4,6 +4,6 @@ class CreateTransactionRelationships < ActiveRecord::Migration[8.0]
       t.references :transaction,   null: false, foreign_key: true
       t.references :relationship,  null: false, foreign_key: true
     end
-    add_index :transaction_relationships, [:transaction_id, :relationship_id], unique: true, name: "index_transaction_relationships_on_transaction_and_relationship"
+    add_index :transaction_relationships, [:transaction_id, :relationship_id], unique: true, name: "idx_txn_relationships_dedup"
   end
 end

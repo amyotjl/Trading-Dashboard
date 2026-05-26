@@ -17,6 +17,6 @@ class CreateTransactions < ActiveRecord::Migration[8.0]
     add_index :transactions,
       [:sedi_transaction_id, :transaction_date, :security_designation_id, :ownership_type_id],
       unique: true,
-      name: "index_transactions_on_sedi_id_and_date_and_security_and_ownership"
+      name: "idx_transactions_dedup"
   end
 end

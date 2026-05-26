@@ -1,0 +1,31 @@
+# docker-compose.dev.yml — Use this ONLY when the project is on the C: drive.
+# Adds bind mounts for live code reload (Rails reloader + Vite HMR).
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# NOTE: Docker on Windows (WSL2) only supports bind mounts from the C: drive.
+# If your project is on A:, D:, or any other drive, use docker-compose.yml
+# alone and rebuild images after code changes:
+#   docker compose build backend && docker compose up -d --no-deps backend
+
+services:
+  backend:
+    volumes:
+      - ./backend:/app
+      - backend_bundle:/usr/local/bundle
+    command: >
+      bash -c "cd /app &&
+               bundle install &&
+               rm -f tmp/pids/server.pid &&
+               bundle exec rails db:migrate &&
+               bundle exec rails server -b 0.0.0.0 -p 3500"
+
+  frontend:
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+
+volumes:
+  backend_bundle:
+  frontend_node_modules:
